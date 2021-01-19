@@ -33,6 +33,4 @@ export const QueryUsersValidator = Joi.object({
   discriminators: Joi.array()
     .items(DiscriminatorValidator.required())
     .optional(),
-
-  avatar: AvatarValidator.optional(),
 }).required();
