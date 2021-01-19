@@ -87,7 +87,8 @@ UserSchema.index({
   username: 1,
 });
 
-export const User = model<IUser, IUserStatics>('User', UserSchema, 'Users');
+export const User = model<IUser, IUserStatics>('User', UserSchema, 'users');
+
 
 UserSchema.statics.findByUsername = (
   username: string,
