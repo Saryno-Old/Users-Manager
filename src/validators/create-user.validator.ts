@@ -9,7 +9,7 @@ import {
 
 export const CreateUserValidator = Joi.object({
   username: UsernameValidator.required(),
-  discriminator: DiscriminatorValidator.required(),
+  discriminator: DiscriminatorValidator.optional().default(() => Math.floor(Math.random() * 9999 + 1)),
 
   authentication: Joi.object({
     basic: Joi.object({

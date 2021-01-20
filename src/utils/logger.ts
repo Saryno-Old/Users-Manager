@@ -4,7 +4,7 @@ const { combine, label, timestamp, metadata, colorize } = format;
 import { LoggingWinston } from '@google-cloud/logging-winston';
 
 const logFormat = format.printf(
-  info => `${info.timestamp} ${info.level} [${info.label}]: ${info.message}`,
+  info => `${info.level}: ${info.message}`,
 );
 
 const usedTransports: transport[] = [];

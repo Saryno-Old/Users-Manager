@@ -11,7 +11,7 @@ export const UsernameValidator = Joi.string()
 
 export const DiscriminatorValidator = Joi.number()
   .min(0)
-  .max(30);
+  .max(9999);
 
 export const AvatarValidator = Joi.string().token();
 

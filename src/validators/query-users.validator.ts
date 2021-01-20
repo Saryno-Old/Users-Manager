@@ -1,7 +1,6 @@
 import * as Joi from 'joi';
 
 import {
-  AvatarValidator,
   DiscriminatorValidator,
   IDValidator,
   UsernameValidator,
