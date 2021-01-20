@@ -11,7 +11,10 @@ import {
   UpdateUserQueryValidator,
   UpdateUserValidator,
 } from '../validators/update-user.validator';
-// import { Logger } from 'utils/logger';
+import { MongoError } from 'mongodb';
+import { EventType, sendEvent } from '../events/events';
+
+
 
 const UsersRouter = new Router({
   prefix: '/users',
@@ -44,7 +47,7 @@ UsersRouter.post('create_user', '/', async ctx => {
         details: err.details,
       },
     });
-  });;
+  });
 
   if (userObject?.discriminator === -1)
     userObject.discriminator = Math.round(Math.random() * 9999 + 1);
@@ -60,24 +63,43 @@ UsersRouter.post('create_user', '/', async ctx => {
   const user = await new User({
     _id: Snowflakes.next(),
     ...userObject,
+  }).save()    .catch((err: MongoError) => {
+    if (err.name === 'MongoError' && err.code === 11000) {
+      return ctx.throw(500, {
+        error: {
+          type: 'database',
+          details: {
+            message: `User with username ${userObject.username} and ${userObject.discriminator} already exists`,
+          },
+        },
+      });
+    }
+    ctx.throw(500);
+  });;
+
+  
+    ctx.body = user.json();
+setImmediate(async () => {
+  sendEvent(EventType.USER_CREATED, {
+    id: user.id,
+    name: user.username,
+    disc: user.discriminator,
   });
+});
 
-  await user.save();
-
-  ctx.body = user.json();
 });
 
 UsersRouter.get('get_user', '/:id', async ctx => {
-const query = await FindUserByIdValidator.validateAsync(
-  ctx.request.query,
-).catch(err => {
-  ctx.throw(400, {
-    error: {
-      type: 'validation-error',
-      details: err.details,
-    },
+  const query = await FindUserByIdValidator.validateAsync(
+    ctx.request.query,
+  ).catch(err => {
+    ctx.throw(400, {
+      error: {
+        type: 'validation-error',
+        details: err.details,
+      },
+    });
   });
-});
 
   const user: IUser = await User.findById(query.id);
 
@@ -89,17 +111,16 @@ const query = await FindUserByIdValidator.validateAsync(
 });
 
 UsersRouter.get('query_users', '/', async ctx => {
-const userQuery = await QueryUsersValidator.validateAsync(
-  ctx.request.query,
-).catch(err => {
-  ctx.throw(400, {
-    error: {
-      type: 'validation-error',
-      details: err.details,
-    },
+  const userQuery = await QueryUsersValidator.validateAsync(
+    ctx.request.query,
+  ).catch(err => {
+    ctx.throw(400, {
+      error: {
+        type: 'validation-error',
+        details: err.details,
+      },
+    });
   });
-});
-
 
   const query = {
     _id: {
@@ -133,7 +154,7 @@ UsersRouter.patch('update_user', '/:id', async ctx => {
       },
     });
     return [null, null];
-  });;
+  });
 
   const update = await User.updateOne(
     {
@@ -152,6 +173,12 @@ return (ctx.response.status = 304);
   }
 
   ctx.response.status = 202;
+setImmediate(async () => {
+  sendEvent(EventType.USER_UPDATED, {
+    id: userQuery.id,
+  });
+});
+
 });
 
 export { UsersRouter };
