@@ -37,7 +37,14 @@ UsersRouter.get('get_user', '/:id', async ctx => {
 UsersRouter.post('create_user', '/', async ctx => {
   const userObject = await CreateUserValidator.validateAsync(
     ctx['request']['body'],
-  );
+  ).catch(err => {
+    ctx.throw(400, {
+      error: {
+        type: 'validation-error',
+        details: err.details,
+      },
+    });
+  });;
 
   if (userObject?.discriminator === -1)
     userObject.discriminator = Math.round(Math.random() * 9999 + 1);
@@ -61,7 +68,17 @@ UsersRouter.post('create_user', '/', async ctx => {
 });
 
 UsersRouter.get('get_user', '/:id', async ctx => {
-  const query = await FindUserByIdValidator.validateAsync(ctx.request.query);
+const query = await FindUserByIdValidator.validateAsync(
+  ctx.request.query,
+).catch(err => {
+  ctx.throw(400, {
+    error: {
+      type: 'validation-error',
+      details: err.details,
+    },
+  });
+});
+
   const user: IUser = await User.findById(query.id);
 
   if (!user) {
@@ -72,7 +89,17 @@ UsersRouter.get('get_user', '/:id', async ctx => {
 });
 
 UsersRouter.get('query_users', '/', async ctx => {
-  const userQuery = await QueryUsersValidator.validateAsync(ctx.request.query);
+const userQuery = await QueryUsersValidator.validateAsync(
+  ctx.request.query,
+).catch(err => {
+  ctx.throw(400, {
+    error: {
+      type: 'validation-error',
+      details: err.details,
+    },
+  });
+});
+
 
   const query = {
     _id: {
@@ -98,7 +125,15 @@ UsersRouter.patch('update_user', '/:id', async ctx => {
   const [userQuery, patch] = await Promise.all([
     UpdateUserQueryValidator.validateAsync(ctx.params),
     UpdateUserValidator.validateAsync(ctx['request']['body']),
-  ]);
+  ]).catch(err => {
+    ctx.throw(400, {
+      error: {
+        type: 'validation-error',
+        details: err.details,
+      },
+    });
+    return [null, null];
+  });;
 
   const update = await User.updateOne(
     {
@@ -112,7 +147,8 @@ UsersRouter.patch('update_user', '/:id', async ctx => {
   }
 
   if (update.n == 1 && update.nModified == 0) {
-    return (ctx.response.status = 302);
+return (ctx.response.status = 304);
+
   }
 
   ctx.response.status = 202;
