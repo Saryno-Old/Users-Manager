@@ -30,4 +30,4 @@ jobs:
         run: echo Hello, world!
         
       - name: Use gcloud CLI
-        run: gcloud info
+        run: gcloud builds submit -t gcr.io/sarynoapp/internal/user-manager
