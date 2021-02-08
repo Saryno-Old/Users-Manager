@@ -23,6 +23,7 @@ mongoose.connect(uri, {
 
 const app = new Koa();
 
+app.use(koabody());
 app.use(removeTrailingSlashes());
 
 app.use(
@@ -32,7 +33,7 @@ app.use(
   }),
 );
 
-app.use(koabody());
+app.use((ctx) => ctx.body = 'hello, world');
 
 app.use(async (ctx, next) => {
   try { 

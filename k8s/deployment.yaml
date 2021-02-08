@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-manager
+  template:
+    metadata:
+      labels:
+        app: user-manager
+    spec:
+      serviceAccountName: user-manager
+      containers:
+        - name: user-manager
+          image: gcr.io/saryno/internal/users-manager:latest
+          # imagePullPolicy: Never #always 
+          ports:
+            - containerPort: 3000
+          env: 
+            - name: LOG_CONSOLE
+              value: 'true'
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: internal-user-manager-secrets
+                  key: mongo-uri
